@@ -1,0 +1,6 @@
+@CreativeHubWebApi_HostAddress = http://localhost:5262
+
+GET {{CreativeHubWebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
