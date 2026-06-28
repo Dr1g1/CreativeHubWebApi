@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.37111.16 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreativeHubWebApi", "CreativeHubWebApi\CreativeHubWebApi.csproj", "{B5191DA7-73C0-4277-ACF1-D01EEE1A07BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreativeHubWebApp", "CreativeHubWebApp\CreativeHubWebApp.csproj", "{A8CCE0D0-4040-4A3C-ACCD-F4BF47357D2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B5191DA7-73C0-4277-ACF1-D01EEE1A07BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B5191DA7-73C0-4277-ACF1-D01EEE1A07BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B5191DA7-73C0-4277-ACF1-D01EEE1A07BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B5191DA7-73C0-4277-ACF1-D01EEE1A07BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8CCE0D0-4040-4A3C-ACCD-F4BF47357D2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8CCE0D0-4040-4A3C-ACCD-F4BF47357D2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8CCE0D0-4040-4A3C-ACCD-F4BF47357D2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8CCE0D0-4040-4A3C-ACCD-F4BF47357D2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {5B5475A0-D67D-45BE-938C-BEA9482E3AEB}
+		SolutionGuid = {95C762DC-B161-4B73-A575-A80CDD27F1B8}
 	EndGlobalSection
 EndGlobal

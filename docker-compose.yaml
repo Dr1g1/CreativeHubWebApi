@@ -1,0 +1,26 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: creativehub-mongo
+    hostname: mongo
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  api:
+    build: ./backend
+    container_name: creativehub-api
+    restart: unless-stopped
+    ports:
+      - "5000:8080"
+    environment:
+      MongoSettings__ConnectionString: "mongodb://mongo:27017/?replicaSet=rs0"
+      MongoSettings__DatabaseName: "creativehub"
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:
