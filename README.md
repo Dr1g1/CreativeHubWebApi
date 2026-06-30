@@ -1,3 +1,2 @@
-Aplikacija za udomljavanje zivotinja. Sistem koji sluzi za povezivanje napustenih zivotinja sa potencijalnim udomiteljima, azilima i volonterima.
-Ideja je pronalaženje životinja koje su najbliže korisniku po lokaciji i kompatibilnosti na osnovu njegovih preferenci i prethodnih iskustava, kao i komunikacija i povezivanje izmedju korisnika, organizacija, volontera i zivotinja.
-Za bazu ce se koristiti Neo4j.
+Web aplikacija za skladistenje, organizaciju i deljenje kreativnih resursa(cetke, teksture, 3d modeli, color palete, templejtovi...).
+Korisnici mogu da postavljaju svoje resurse, organizuju ih u kolekcije, pretrazuju po razlicitim kriterijumima i ostavljaju recenzije. Koristi se MongoDB. Namenjena je korisnicima koji su digitalni umetnici, dizajneri video igara ili bilo kojoj vrsti dizajnera kojima je potrebna razmena ovakvih tipova resursa.
