@@ -1,12 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using CreativeHubWebApp.DTO;
+﻿using CreativeHubWebApp.DTO;
 using CreativeHubWebApp.Models;
 using CreativeHubWebApp.Repositories;
 using CreativeHubWebApp.Settings;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace CreativeHubWebApp.Services
 {
@@ -14,22 +15,31 @@ namespace CreativeHubWebApp.Services
     {
         private readonly UserRepository _users;
         private readonly JwtSettings _jwt;
+        private readonly IMongoClient _client;
+        private readonly ResourceRepository _resources;
+        private readonly ReviewRepository _reviews;
+        private readonly CollectionRepository _collections;
+        private readonly GridFsService _gridFs;
 
-        public AuthService(UserRepository users, IOptions<JwtSettings> jwtOptions)
+        public AuthService(UserRepository users, IOptions<JwtSettings> jwtOptions, IMongoClient client,
+                            ResourceRepository resources, ReviewRepository reviews, CollectionRepository collections, GridFsService gridFs)
         {
             _users = users;
             _jwt = jwtOptions.Value;
+            _client = client;
+            _resources = resources;
+            _reviews = reviews;
+            _collections = collections;
+            _gridFs = gridFs;
         }
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // provera da email ili username nisu vec zauzeti:
             if (await _users.GetByEmailAsync(dto.Email) is not null)
                 throw new InvalidOperationException("Email je već u upotrebi.");
             if (await _users.GetByUsernameAsync(dto.Username) is not null)
                 throw new InvalidOperationException("Username je već zauzet.");
 
-            // hesiranje:
             var user = new User
             {
                 Username = dto.Username,
@@ -39,10 +49,8 @@ namespace CreativeHubWebApp.Services
                 Role = "user"
             };
 
-            // upis u bazu
             await _users.CreateAsync(user);
 
-            // odmah izdaj token, da bude odmah ulogovan i posle registracije
             return BuildResponse(user);
         }
 
@@ -51,14 +59,13 @@ namespace CreativeHubWebApp.Services
             var user = await _users.GetByEmailAsync(dto.Email);
 
             // namerno ista poruka i kad email ne postoji i kad je lozinka pogresna
-            // da napadac ne moze da provali koji mejl je u sistemu
+            // da ako neko hoce da napadne ne moze da provali koji mejl je u sistemu
             if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 throw new InvalidOperationException("Pogrešan email ili lozinka.");
 
             return BuildResponse(user);
         }
 
-        // helper fja:
         private AuthResponseDto BuildResponse(User user) => new()
         {
             Token = GenerateToken(user),
@@ -69,16 +76,16 @@ namespace CreativeHubWebApp.Services
 
         private string GenerateToken(User user)
         {
-            // "Claims" su tvrdnje koje token nosi o korisniku
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),        // ko je korisnik (misli se na id)
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id),        
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new Claim(ClaimTypes.Role, user.Role),                  // uloga (user/admin)
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // jedinstveni id tokena
+            new Claim(ClaimTypes.Role, user.Role),                  
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())//svaki token ima id
         };
 
-            // kljuc kojim potpisujemo token (isti ovaj kljuc kasnije proverava potpis)
+            // kljuc kojim potpisujemo token
+            //isti ovaj kljuc kasnije proverava potpis
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -90,6 +97,51 @@ namespace CreativeHubWebApp.Services
                 signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public async Task<UserResponseDto?> GetProfileAsync(string id)
+        {
+            var user = await _users.GetByIdAsync(id);
+            return user is null ? null : UserResponseDto.From(user);
+        }
+
+        public async Task<UserResponseDto?> UpdateProfileAsync(string id, UpdateProfileDto dto)
+        {
+            await _users.UpdateProfileAsync(id, dto.DisplayName, dto.Bio);
+            var user = await _users.GetByIdAsync(id);
+            return user is null ? null : UserResponseDto.From(user);
+        }
+
+        public async Task<bool> DeleteAccountAsync(string userId)
+        {
+            var user = await _users.GetByIdAsync(userId);
+            if (user is null) return false;
+
+            using var session = await _client.StartSessionAsync();
+
+            await session.WithTransactionAsync(async (s, ct) =>
+            {
+                var resources = await _resources.GetByOwnerInSessionAsync(s, userId);
+
+                
+                await _resources.DeleteByOwnerAsync(s, userId);
+                await _reviews.DeleteByUserAsync(s, userId);
+                await _collections.DeleteByOwnerAsync(s, userId);
+                await _users.DeleteAsync(s, userId);
+
+                
+                foreach (var r in resources)
+                {
+                    if (!string.IsNullOrEmpty(r.FileId))
+                        await _gridFs.DeleteAsync(r.FileId);
+                    foreach (var pid in r.PreviewImageIds)
+                        await _gridFs.DeleteAsync(pid);
+                }
+
+                return true;
+            });
+
+            return true;
         }
     }
 }

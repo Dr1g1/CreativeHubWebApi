@@ -11,10 +11,10 @@ namespace CreativeHubWebApp.Models
         public string Id { get; set; } = null!;
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ResourceId { get; set; } = null!;   // referenca na resource
+        public string ResourceId { get; set; } = null!;   
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; } = null!;        // referenca na usera
+        public string UserId { get; set; } = null!;        
 
         public int Rating { get; set; }                 
         public string Comment { get; set; } = "";

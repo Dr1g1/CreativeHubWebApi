@@ -14,10 +14,10 @@ namespace CreativeHubWebApp.Models
         public string Description { get; set; } = "";
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string OwnerId { get; set; } = null!;        // referenca na user
+        public string OwnerId { get; set; } = null!;        
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public List<string> ResourceIds { get; set; } = new();  // reference na resource-eve 
+        public List<string> ResourceIds { get; set; } = new();  
 
         public bool IsPublic { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

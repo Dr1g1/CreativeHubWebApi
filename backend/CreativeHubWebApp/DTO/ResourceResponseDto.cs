@@ -18,6 +18,7 @@ namespace CreativeHubWebApp.DTO
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<string> PreviewImageIds { get; set; } = new();
 
         // pomocna fja koja pretvara resource model u ovaj dto iznad
         public static ResourceResponseDto From(Resource r) => new()
@@ -34,7 +35,8 @@ namespace CreativeHubWebApp.DTO
             Downloads = r.Downloads,
             AverageRating = r.AverageRating,
             ReviewCount = r.ReviewCount,
-            CreatedAt = r.CreatedAt
+            CreatedAt = r.CreatedAt,
+            PreviewImageIds = r.PreviewImageIds,
         };
     }
 }

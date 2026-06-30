@@ -26,11 +26,23 @@ namespace CreativeHubWebApp.Repositories
             return result.DeletedCount > 0;
         }
 
-        // $inc operator poveca se kao atomska operaacija
+        //$inc operator poveca se kao atomska operaacija
         public async Task IncrementDownloadsAsync(string id)
         {
             var update = Builders<Resource>.Update.Inc(r => r.Downloads, 1);
             await _ctx.Resources.UpdateOneAsync(r => r.Id == id, update);
         }
+
+        public async Task<List<Resource>> GetByOwnerAsync(string ownerId) =>
+            await _ctx.Resources.Find(r => r.OwnerId == ownerId)
+                        .SortByDescending(r => r.CreatedAt)
+                        .ToListAsync();
+
+        
+        public async Task<List<Resource>> GetByOwnerInSessionAsync(IClientSessionHandle session, string ownerId) =>
+            await _ctx.Resources.Find(session, r => r.OwnerId == ownerId).ToListAsync();
+
+        public async Task DeleteByOwnerAsync(IClientSessionHandle session, string ownerId) =>
+            await _ctx.Resources.DeleteManyAsync(session, r => r.OwnerId == ownerId);
     }
 }

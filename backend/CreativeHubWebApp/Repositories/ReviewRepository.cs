@@ -13,5 +13,7 @@ namespace CreativeHubWebApp.Repositories
             await _ctx.Reviews.Find(r => r.ResourceId == resourceId)
                               .SortByDescending(r => r.CreatedAt)
                               .ToListAsync();
+        public async Task DeleteByUserAsync(IClientSessionHandle session, string userId) =>
+            await _ctx.Reviews.DeleteManyAsync(session, r => r.UserId == userId);
     }
 }

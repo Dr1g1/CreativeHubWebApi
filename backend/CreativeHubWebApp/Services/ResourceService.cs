@@ -4,7 +4,6 @@ using CreativeHubWebApp.Repositories;
 
 namespace CreativeHubWebApp.Services
 {
-    // URADI KAD SE VRATIS IZ TERETANE PLS
     public class ResourceService
     {
         private readonly ResourceRepository _resources;
@@ -22,17 +21,27 @@ namespace CreativeHubWebApp.Services
             return list.Select(ResourceResponseDto.From).ToList();
         }
 
+        public Task<(byte[] data, string fileName)> GetPreviewAsync(string fileId) =>
+            _gridFs.DownloadWithNameAsync(fileId);
+
         public async Task<ResourceResponseDto?> GetByIdAsync(string id)
         {
             var r = await _resources.GetByIdAsync(id);
             return r is null ? null : ResourceResponseDto.From(r);
         }
 
-        // kreiranje resursa SA fajlom
         public async Task<ResourceResponseDto> CreateWithFileAsync(
-            CreateResourceDto dto, string ownerId, Stream fileStream, string fileName, long fileSize)
+            CreateResourceDto dto, string ownerId, Stream fileStream, string fileName, long fileSize,
+            List<(Stream stream, string fileName)> previews)
         {
             var fileId = await _gridFs.UploadAsync(fileStream, fileName);
+
+            var previewIds = new List<string>();
+            foreach (var p in previews)
+            {
+                var pid = await _gridFs.UploadAsync(p.stream, p.fileName);
+                previewIds.Add(pid);
+            }
 
             var resource = new Resource
             {
@@ -44,16 +53,24 @@ namespace CreativeHubWebApp.Services
                 FileId = fileId,
                 FileFormat = Path.GetExtension(fileName).TrimStart('.').ToLower(),
                 FileSizeBytes = fileSize,
-                OwnerId = ownerId
+                OwnerId = ownerId,
+                PreviewImageIds = previewIds
             };
 
             await _resources.CreateAsync(resource);
             return ResourceResponseDto.From(resource);
         }
 
-        // kreiranje palete 
-        public async Task<ResourceResponseDto> CreatePaletteAsync(CreateResourceDto dto, string ownerId)
+        public async Task<ResourceResponseDto> CreatePaletteAsync(
+            CreateResourceDto dto, string ownerId, List<(Stream stream, string fileName)> previews)
         {
+            var previewIds = new List<string>();
+            foreach (var p in previews)
+            {
+                var pid = await _gridFs.UploadAsync(p.stream, p.fileName);
+                previewIds.Add(pid);
+            }
+
             var resource = new Resource
             {
                 Title = dto.Title,
@@ -62,7 +79,8 @@ namespace CreativeHubWebApp.Services
                 Tags = dto.Tags,
                 ContentType = ContentType.Inline,
                 Colors = dto.Colors,
-                OwnerId = ownerId
+                OwnerId = ownerId,
+                PreviewImageIds = previewIds
             };
 
             await _resources.CreateAsync(resource);
@@ -76,7 +94,7 @@ namespace CreativeHubWebApp.Services
             if (resource is null || resource.FileId is null) return null;
 
             var data = await _gridFs.DownloadAsync(resource.FileId);
-            await _resources.IncrementDownloadsAsync(id);   // $inc
+            await _resources.IncrementDownloadsAsync(id);  
 
             var fileName = $"{resource.Title}.{resource.FileFormat}";
             return (data, fileName);
@@ -90,9 +108,17 @@ namespace CreativeHubWebApp.Services
                 throw new UnauthorizedAccessException("Možeš obrisati samo svoje resurse.");
 
             if (resource.FileId is not null)
-                await _gridFs.DeleteAsync(resource.FileId);   
+                await _gridFs.DeleteAsync(resource.FileId);
+            foreach (var pid in resource.PreviewImageIds)
+                await _gridFs.DeleteAsync(pid);
 
             return await _resources.DeleteAsync(id);
+        }
+
+        public async Task<List<ResourceResponseDto>> GetByOwnerAsync(string ownerId)
+        {
+            var list = await _resources.GetByOwnerAsync(ownerId);
+            return list.Select(ResourceResponseDto.From).ToList();
         }
     }
 }

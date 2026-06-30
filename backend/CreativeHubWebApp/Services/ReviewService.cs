@@ -52,7 +52,6 @@ namespace CreativeHubWebApp.Services
 
             await session.WithTransactionAsync(async (s, ct) =>
             {
-                // trazimo recenziju korisnika
                 var existing = await _ctx.Reviews
                     .Find(s, r => r.ResourceId == resourceId && r.UserId == userId)
                     .FirstOrDefaultAsync(ct);
@@ -60,7 +59,6 @@ namespace CreativeHubWebApp.Services
                 if (existing is null)
                     throw new InvalidOperationException("Nemaš recenziju za ovaj resurs.");
 
-                // azuriramo ocenu i komentar
                 var update = Builders<Review>.Update
                     .Set(r => r.Rating, dto.Rating)
                     .Set(r => r.Comment, dto.Comment);
@@ -108,7 +106,6 @@ namespace CreativeHubWebApp.Services
                 .Find(s, r => r.ResourceId == resourceId)
                 .ToListAsync(ct);
 
-            // ako nema recenzija ocena 0
             var avg = allReviews.Count > 0 ? allReviews.Average(r => r.Rating) : 0;
             var count = allReviews.Count;
 

@@ -1,5 +1,4 @@
 ﻿using CreativeHubWebApp.DTO;
-using CreativeHubWebApp.DTO;
 using CreativeHubWebApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +36,7 @@ namespace CreativeHubWebApp.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Unauthorized(new { message = ex.Message }); // 401
+                return Unauthorized(new { message = ex.Message }); 
             }
         }
     }

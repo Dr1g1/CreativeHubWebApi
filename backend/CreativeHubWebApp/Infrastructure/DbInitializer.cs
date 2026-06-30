@@ -12,7 +12,7 @@ namespace CreativeHubWebApp.Infrastructure
 
         public async Task InitAsync()
         {
-            // validacija za reviews mora da ide od 1-5
+            // validacija za reviews mora da ide od 1 do 5
             var existing = await (await _ctx.Database.ListCollectionNamesAsync()).ToListAsync(); // uzimamo imena svih kolekcija iz baze
             if (!existing.Contains("reviews"))
             {
@@ -21,7 +21,7 @@ namespace CreativeHubWebApp.Infrastructure
                 var validator = new BsonDocument("$jsonSchema", new BsonDocument
                 {
                     { "bsonType", "object" }, // svaki dokument je bson objekat
-                    { "required", new BsonArray { "ResourceId", "UserId", "Rating" } }, // polja koja mora mo da imamo
+                    { "required", new BsonArray { "ResourceId", "UserId", "Rating" } },// polja koja mora mo da imamo
                     { "properties", new BsonDocument
                         {
                             { "Rating", new BsonDocument // pravila za polje rating
@@ -39,7 +39,7 @@ namespace CreativeHubWebApp.Infrastructure
                     new CreateCollectionOptions<BsonDocument> { Validator = validator });
             }
 
-            // createmany - pravi vise indeksa odjednom
+            // createmany pravi vise indeksa odjednom
             await _ctx.Users.Indexes.CreateManyAsync(new[]
             {
                 //index na username

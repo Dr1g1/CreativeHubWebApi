@@ -26,7 +26,6 @@ namespace CreativeHubWebApp.Repositories
             return result.DeletedCount > 0;
         }
 
-        // $addToSet — dodaj resurs u niz, bez duplikata
         public async Task AddResourceAsync(string collectionId, string resourceId)
         {
             var update = Builders<ResourceCollection>.Update
@@ -34,12 +33,14 @@ namespace CreativeHubWebApp.Repositories
             await _ctx.Collections.UpdateOneAsync(c => c.Id == collectionId, update);
         }
 
-        // $pull — izbaci resurs iz niza
         public async Task RemoveResourceAsync(string collectionId, string resourceId)
         {
             var update = Builders<ResourceCollection>.Update
                 .Pull(c => c.ResourceIds, resourceId);
             await _ctx.Collections.UpdateOneAsync(c => c.Id == collectionId, update);
         }
+
+        public async Task DeleteByOwnerAsync(IClientSessionHandle session, string ownerId) =>
+            await _ctx.Collections.DeleteManyAsync(session, c => c.OwnerId == ownerId);
     }
 }

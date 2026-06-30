@@ -1,5 +1,4 @@
 ﻿using CreativeHubWebApp.DTO;
-using CreativeHubWebApp.DTO;
 using CreativeHubWebApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,27 +28,73 @@ namespace CreativeHubWebApp.Controllers
             return r is null ? NotFound() : Ok(r);
         }
 
-        [Authorize]   // mora korisnik da bude ulogovan
-        [HttpPost("upload")]   
+        [Authorize]
+        [HttpPost("upload")]
         public async Task<IActionResult> Upload(
-            [FromForm] CreateResourceDto dto, IFormFile file)
+            [FromForm] CreateResourceDto dto, IFormFile file, [FromForm] List<IFormFile>? previews)
         {
             if (file is null || file.Length == 0)
                 return BadRequest(new { message = "Fajl je obavezan." });
 
-            using var stream = file.OpenReadStream();
-            var result = await _service.CreateWithFileAsync(
-                dto, UserId, stream, file.FileName, file.Length);
+            using var mainStream = file.OpenReadStream();
 
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+           
+            var previewData = new List<(Stream stream, string fileName)>();
+            var openStreams = new List<Stream>();
+            if (previews is not null)
+            {
+                foreach (var p in previews)
+                {
+                    if (p.Length > 0)
+                    {
+                        var s = p.OpenReadStream();
+                        openStreams.Add(s);
+                        previewData.Add((s, p.FileName));
+                    }
+                }
+            }
+
+            try
+            {
+                var result = await _service.CreateWithFileAsync(
+                    dto, UserId, mainStream, file.FileName, file.Length, previewData);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            finally
+            {
+                foreach (var s in openStreams) s.Dispose();
+            }
         }
 
         [Authorize]
-        [HttpPost("palette")]   // za paletu posot njoj ne treba fajl
-        public async Task<IActionResult> CreatePalette(CreateResourceDto dto)
+        [HttpPost("palette")]
+        public async Task<IActionResult> CreatePalette(
+            [FromForm] CreateResourceDto dto, [FromForm] List<IFormFile>? previews)
         {
-            var result = await _service.CreatePaletteAsync(dto, UserId);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var previewData = new List<(Stream stream, string fileName)>();
+            var openStreams = new List<Stream>();
+            if (previews is not null)
+            {
+                foreach (var p in previews)
+                {
+                    if (p.Length > 0)
+                    {
+                        var s = p.OpenReadStream();
+                        openStreams.Add(s);
+                        previewData.Add((s, p.FileName));
+                    }
+                }
+            }
+
+            try
+            {
+                var result = await _service.CreatePaletteAsync(dto, UserId, previewData);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            finally
+            {
+                foreach (var s in openStreams) s.Dispose();
+            }
         }
 
         [HttpGet("{id}/download")]   
@@ -73,6 +118,34 @@ namespace CreativeHubWebApp.Controllers
             {
                 return Forbid();
             }
+        }
+
+        [HttpGet("preview/{fileId}")]   
+        public async Task<IActionResult> GetPreview(string fileId)
+        {
+            try
+            {
+                var (data, fileName) = await _service.GetPreviewAsync(fileId);
+                return File(data, GuessContentType(fileName));   
+            }
+            catch
+            {
+                return NotFound();
+            }
+        }
+
+        // pogadja tip slike iz ekstenzije da je browser prikaze umesto da je skida
+        private static string GuessContentType(string fileName)
+        {
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            return ext switch
+            {
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+                _ => "application/octet-stream"
+            };
         }
     }
 }

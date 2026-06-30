@@ -15,10 +15,8 @@ namespace CreativeHubWebApp.Repositories
         {
             var pipeline = new BsonDocument[]
             {
-                // trazimo resurs
                 new BsonDocument("$match", new BsonDocument("_id", ObjectId.Parse(resourceId))),
 
-                // spajamo onog sto je kreirao iz users kolekcije
                 new BsonDocument("$lookup", new BsonDocument
                 {
                     { "from", "users" },
@@ -87,7 +85,7 @@ namespace CreativeHubWebApp.Repositories
             }).ToList();
         }
 
-        // histogram raspodele ocena
+        //histogram xa raspodelu ocena
         public async Task<List<RatingBucketDto>> GetRatingDistributionAsync()
         {
             var pipeline = new BsonDocument[]

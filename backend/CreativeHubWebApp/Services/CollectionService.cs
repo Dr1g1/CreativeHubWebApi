@@ -49,7 +49,6 @@ namespace CreativeHubWebApp.Services
             if (collection.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Nije tvoja kolekcija.");
 
-            // provera jel resurs uopste postoji
             var resource = await _resources.GetByIdAsync(resourceId);
             if (resource is null)
                 throw new InvalidOperationException("Resurs ne postoji.");

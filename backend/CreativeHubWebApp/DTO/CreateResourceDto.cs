@@ -9,6 +9,6 @@ namespace CreativeHubWebApp.DTO
         public string Description { get; set; } = "";
         public ResourceType Type { get; set; }
         public List<string> Tags { get; set; } = new();
-        public List<string> Colors { get; set; } = new();   // samo za palete
+        public List<string> Colors { get; set; } = new();   
     }
 }

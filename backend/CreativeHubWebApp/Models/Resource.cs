@@ -38,5 +38,7 @@ namespace CreativeHubWebApp.Models
         public double AverageRating { get; set; }
         public int ReviewCount { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [BsonRepresentation(BsonType.ObjectId)]
+        public List<string> PreviewImageIds { get; set; } = new();
     }
 }

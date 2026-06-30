@@ -1,10 +1,13 @@
-﻿using System.Text;
-using CreativeHubWebApp.Infrastructure;
+﻿using CreativeHubWebApp.Infrastructure;
 using CreativeHubWebApp.Repositories;
 using CreativeHubWebApp.Services;
 using CreativeHubWebApp.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,19 +61,34 @@ builder.Services.AddSwaggerGen();
 
 
 // podizanje limita za velicinu uploada
+//trenutno je 200mb
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 200 * 1024 * 1024;  // 200 MB
+    options.MultipartBodyLengthLimit = 200 * 1024 * 1024; 
 });
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 200 * 1024 * 1024;  // 200 MB
+    options.Limits.MaxRequestBodySize = 200 * 1024 * 1024;  
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("frontend", policy =>
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
 
 var app = builder.Build();
+
+app.UseCors("frontend");
 
 // kreiranje indeksa pri startu
 using (var scope = app.Services.CreateScope())
@@ -83,7 +101,7 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication();   // mora PRE UseAuthorization
+app.UseAuthentication();  
 app.UseAuthorization();
 
 app.MapControllers();

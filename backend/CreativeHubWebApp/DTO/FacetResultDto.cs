@@ -9,7 +9,7 @@
 
     public class FacetCount
     {
-        public string Value { get; set; } = null!;   // npr "Brush" ili "fantasy"
+        public string Value { get; set; } = null!;   // npr "brush" ili "fantasy"
         public int Count { get; set; }                // kolko ih ima
     }
 }
