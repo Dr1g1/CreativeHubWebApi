@@ -9,7 +9,7 @@ export interface Resource {
   id: string;
   title: string;
   description: string;
-  type: string;            
+  type: string; //cetke, teksture, 3D modeli, colorpalete i templejtovi  
   tags: string[];
   colors: string[];
   fileFormat: string;

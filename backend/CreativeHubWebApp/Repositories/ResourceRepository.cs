@@ -44,5 +44,30 @@ namespace CreativeHubWebApp.Repositories
 
         public async Task DeleteByOwnerAsync(IClientSessionHandle session, string ownerId) =>
             await _ctx.Resources.DeleteManyAsync(session, r => r.OwnerId == ownerId);
+
+        public async Task UpdateAsync(string id, string title, string description,
+                                      List<string> tags, List<string> colors)
+        {
+            var update = Builders<Resource>.Update
+                .Set(r => r.Title, title)
+                .Set(r => r.Description, description)
+                .Set(r => r.Tags, tags)
+                .Set(r => r.Colors, colors);
+            await _ctx.Resources.UpdateOneAsync(r => r.Id == id, update);
+        }
+
+        public async Task AddPreviewAsync(string resourceId, string fileId)
+        {
+            var update = Builders<Resource>.Update.AddToSet(r => r.PreviewImageIds, fileId);
+            await _ctx.Resources.UpdateOneAsync(r => r.Id == resourceId, update);
+        }
+
+        public async Task RemovePreviewAsync(string resourceId, string fileId)
+        {
+            var update = Builders<Resource>.Update.Pull(r => r.PreviewImageIds, fileId);
+            await _ctx.Resources.UpdateOneAsync(r => r.Id == resourceId, update);
+        }
     }
+
+
 }

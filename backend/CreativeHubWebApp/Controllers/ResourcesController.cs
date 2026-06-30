@@ -147,5 +147,34 @@ namespace CreativeHubWebApp.Controllers
                 _ => "application/octet-stream"
             };
         }
+
+
+        [Authorize]
+        [HttpPut("{id}")]  
+        public async Task<IActionResult> Update(string id, UpdateResourceDto dto)
+        {
+            var ok = await _service.UpdateAsync(id, UserId, dto);
+            return ok ? NoContent() : Forbid();
+        }
+
+        [Authorize]
+        [HttpPost("{id}/previews")]  
+        public async Task<IActionResult> AddPreview(string id, IFormFile file)
+        {
+            if (file is null || file.Length == 0)
+                return BadRequest(new { message = "Slika je obavezna." });
+
+            using var stream = file.OpenReadStream();
+            var fileId = await _service.AddPreviewAsync(id, UserId, stream, file.FileName);
+            return fileId is null ? Forbid() : Ok(new { fileId });
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/previews/{fileId}")]   
+        public async Task<IActionResult> RemovePreview(string id, string fileId)
+        {
+            var ok = await _service.RemovePreviewAsync(id, UserId, fileId);
+            return ok ? NoContent() : Forbid();
+        }
     }
 }

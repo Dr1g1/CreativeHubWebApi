@@ -120,5 +120,34 @@ namespace CreativeHubWebApp.Services
             var list = await _resources.GetByOwnerAsync(ownerId);
             return list.Select(ResourceResponseDto.From).ToList();
         }
+
+        public async Task<bool> UpdateAsync(string id, string userId, UpdateResourceDto dto)
+        {
+            var resource = await _resources.GetByIdAsync(id);
+            if (resource is null || resource.OwnerId != userId) return false;
+
+            await _resources.UpdateAsync(id, dto.Title, dto.Description, dto.Tags, dto.Colors);
+            return true;
+        }
+
+        public async Task<string?> AddPreviewAsync(string id, string userId, Stream stream, string fileName)
+        {
+            var resource = await _resources.GetByIdAsync(id);
+            if (resource is null || resource.OwnerId != userId) return null;
+
+            var fileId = await _gridFs.UploadAsync(stream, fileName);
+            await _resources.AddPreviewAsync(id, fileId);
+            return fileId;
+        }
+
+        public async Task<bool> RemovePreviewAsync(string id, string userId, string fileId)
+        {
+            var resource = await _resources.GetByIdAsync(id);
+            if (resource is null || resource.OwnerId != userId) return false;
+
+            await _resources.RemovePreviewAsync(id, fileId);   
+            await _gridFs.DeleteAsync(fileId);                  
+            return true;
+        }
     }
 }

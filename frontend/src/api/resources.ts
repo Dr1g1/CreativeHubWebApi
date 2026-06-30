@@ -58,3 +58,23 @@ export async function createPalette(data: {
 export function previewUrl(fileId: string) {
   return `http://localhost:5158/api/resources/preview/${fileId}`;
 }
+
+export async function updateResource(id: string, data: {
+  title: string;
+  description: string;
+  tags: string[];
+  colors: string[];
+}) {
+  await client.put(`/resources/${id}`, data);
+}
+
+export async function addPreview(resourceId: string, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await client.post<{ fileId: string }>(`/resources/${resourceId}/previews`, form);
+  return res.data.fileId;
+}
+
+export async function removePreview(resourceId: string, fileId: string) {
+  await client.delete(`/resources/${resourceId}/previews/${fileId}`);
+}
