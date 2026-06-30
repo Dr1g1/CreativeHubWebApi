@@ -1,0 +1,2 @@
+Web aplikacija za skladistenje, organizaciju i deljenje kreativnih resursa(cetke, teksture, 3d modeli, color palete, templejtovi...).
+Korisnici mogu da postavljaju svoje resurse, organizuju ih u kolekcije, pretrazuju po razlicitim kriterijumima i ostavljaju recenzije. Koristi se MongoDB. Namenjena je korisnicima koji su digitalni umetnici, dizajneri video igara ili bilo kojoj vrsti dizajnera kojima je potrebna razmena ovakvih tipova resursa.
